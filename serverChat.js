@@ -5,6 +5,7 @@ const cors = require("cors");
 const app = express();
 const httpServer = createServer(app);
 const chatService = require('./chat/chatService');
+const messageCache = require('./chat/messageCache');
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const io = new Server(httpServer, {
@@ -36,6 +37,7 @@ io.on('connection', (socket) => {
             message.content = msg.content;
             console.log(`userId: ${msg.userId}` );
 
+            await messageCache.messageIdSetCache(message.content, message);
             io.emit(msg.userId, JSON.stringify(message));
             // This will emit the event to all connected sockets
         }
