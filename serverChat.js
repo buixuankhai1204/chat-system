@@ -15,7 +15,7 @@ const io = new Server(httpServer, {
         methods: ["GET", "POST"]
     }
 });
-dotenv.config({ path: './config.env' });
+dotenv.config({path: './config.env'});
 
 mongoose
     .connect("mongodb://mongodb:latest:27017/BackendProject", {
@@ -35,13 +35,45 @@ io.on('connection', (socket) => {
             io.emit(msg.userFrom, "send error"); // This will emit the event to all connected sockets
         } else {
             message.content = msg.content;
-            console.log(`userId: ${msg.userId}` );
-
             await messageCache.messageIdSetCache(message.content, message);
-            io.emit(msg.userId, JSON.stringify(message));
-            // This will emit the event to all connected sockets
+            for (let i = 0; i < msg.userIds.length; i++) {
+                io.emit(msg.userIds[i], JSON.stringify(message));
+
+            }
         }
     });
+
+    socket.on('add member', async (msg) => {
+        const channelUpdate = await chatService.addMemberToGroup(msg.channelId, msg.userId, msg.content, msg.adminId);
+        if (channelUpdate.status === 'fail') {
+            io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
+        } else {
+            channelUpdate.content = msg.content;
+            let message = `thành viên ${msg.userId} đã được thêm vào nhóm`;
+            io.emit(msg.channelId, JSON.stringify(message));
+        }
+    });
+
+    socket.on('leave group', async (msg) => {
+        const channelUpdate = await chatService.leaveGroup(msg.channelId, msg.userId);
+        if (channelUpdate.status === 'fail') {
+            io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
+        } else {
+            let message = `thành viên ${msg.userId} đã rời khỏi nhóm`;
+            io.emit(msg.channelId, JSON.stringify(message));
+        }
+    });
+
+    socket.on('add admin to group', async (msg) => {
+        const channelUpdate = await chatService.addAdminstratorToUserInGroup(msg.channelId, msg.userId, msg.adminId);
+        if (channelUpdate.status === 'fail') {
+            io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
+        } else {
+            let message = `thành viên ${msg.userId} đã được làm quản trị viên bởi ${msg.adminId}`;
+            io.emit(msg.channelId, JSON.stringify(message));
+        }
+    });
+
 });
 
 httpServer.listen(8080);
