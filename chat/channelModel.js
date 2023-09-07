@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const appError = require('appError');
 
-const chanelSchema = new mongoose.Schema({
+const channelSchema = new mongoose.Schema({
 
     nameChannel: {
         type: String,
@@ -30,7 +30,7 @@ const chanelSchema = new mongoose.Schema({
         default: Date.now()
     },
 });
-chanelSchema.pre('updateOne', function(next) {
+channelSchema.pre('updateOne', function(next) {
     for (let i = 0; i < this.userIds.length; i++) {
         for (let j = 0; j < this.adminIds.length; j++) {
             if(this.userIds[i] === this.adminIds[j]) {
@@ -45,7 +45,28 @@ channelSchema.pre('save', function (next) {
 
 })
 
+channelSchema.methods.isAdmin = async function(
+    adminId
+) {
+    let isContain = this.adminIds.includes(adminId);
+    if(isContain === true) {
+        return true;
+    }
 
-const chanelModel = mongoose.model('Channel', chanelSchema);
+    return false;
+};
+
+channelSchema.methods.isUser = async function(
+    userId
+) {
+    let isContain = this.userIds.includes(userId);
+    if(isContain === true) {
+        return true;
+    }
+    return false;
+};
+
+
+const chanelModel = mongoose.model('Channel', channelSchema);
 
 module.exports = chanelModel;

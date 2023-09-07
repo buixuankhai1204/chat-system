@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 module.exports = class chatService {
     static async createMessageChat(channelId, userFrom, content) {
         let data = {};
-        console.log(channelId)
         data.channelId = mongoose.Types.ObjectId(channelId);
         data.messageFrom = mongoose.Types.ObjectId(userFrom);
         data.content = content;
@@ -17,20 +16,22 @@ module.exports = class chatService {
         return message;
     }
 
-    static async addMemberToGroup(channelId, userId) {
+    static async addMemberToGroup(channelId, userId, adminId) {
         let channel = await channelModel.findById(channelId);
         if(!channel) {
             return next(new AppError('không tìm thấy channel', 401));
         }
 
-        let userIds = channel.userIds;
-        let isConstrains = userIds.includes(userId);
-        if(isConstrains === true) {
+
+        if(channel.isAdmin(adminId) === false) {
+            return  new AppError('chưa có quyền quản trị viên, vui lòng kiểm tra lại', 401);
+        }
+
+        if(channel.isUser(userId) === true) {
             return  new AppError('thành viên đã được thêm vào nhóm trứớc đó, vui lòng kiểm tra lại', 401);
         }
 
         userIds.push(userId);
-
         let channelUpdate = await channelModel.findByIdAndUpdate(channelId, {userIds: userIds});
 
         if(!channelUpdate) {
@@ -46,9 +47,8 @@ module.exports = class chatService {
             return next(new AppError('không tìm thấy channel', 401));
         }
 
-        let userIds = channel.userIds;
-        let isConstrains = userIds.includes(userId);
-        if(isConstrains === false) {
+
+        if(channel.isUser(userId) === false) {
             return  new AppError('user này không có trong nhóm, vui lòng kiểm tra lại', 401);
         }
 
@@ -73,14 +73,11 @@ module.exports = class chatService {
             return AppError('adminId không đúng, vui lòng kiểm tra lại', 401);
         }
 
-        let isConstrains = userIds.includes(userId);
-
-        if(isConstrains === false) {
+        if(channel.isUser(userId) === false) {
             return AppError('user không tồn tại trong group, vui lòng kiểm tra lại', 401);
         }
 
-        let isContainsAdmin = channel.adminIds.includes(userId);
-        if(isConstrains === true) {
+        if(channel.isAdmin(userId) === true) {
             return AppError('user này đã là admin trong group, vui lòng kiểm tra lại', 401);
         }
 
@@ -94,5 +91,29 @@ module.exports = class chatService {
         }
 
         return updateChannel;
+    }
+
+    static async changeNameGroup(channelId, name, adminId) {
+        const channel = await channelModel.findById(channelId)
+        if(!channel) {
+            return AppError('channel không tồn tại, vui lòng kiểm tra lại', 401);
+        }
+
+        if(channel.isAdmin(adminId) === false) {
+            return AppError('user này đã là admin trong group, vui lòng kiểm tra lại', 401);
+        }
+
+        if(channel.name === name) {
+            return AppError('tên group trùng với tên cũ, vui lòng kiểm tra lại', 401);
+        }
+
+        const channelUpdateName = await channel.findByIdAndUpdate(channelId, {name: name});
+        if(!channelUpdateName) {
+            return AppError('không thể cập nhật tên cho group, vui lòng kiểm tra lại', 401);
+        }
+        return channelUpdateName;
+        for (let i = 0; i < ; i++) {
+            
+        }
     }
 }
