@@ -4,8 +4,8 @@ const {Server} = require("socket.io");
 const cors = require("cors");
 const app = express();
 const httpServer = createServer(app);
-const chatService = require('./chat/chatService');
-const messageCache = require('./chat/messageCache');
+const chatService = require('./chat/Services/chatService');
+const messageCache = require('./chat/Cache/messageCache');
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const io = new Server(httpServer, {
@@ -13,7 +13,8 @@ const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:3000",
         methods: ["GET", "POST"]
-    }
+    },
+    maxHttpBufferSize: 1e9
 });
 dotenv.config({path: './config.env'});
 
@@ -66,6 +67,21 @@ io.on('connection', (socket) => {
 
     socket.on('add admin to group', async (msg) => {
         const channelUpdate = await chatService.addAdminstratorToUserInGroup(msg.channelId, msg.userId, msg.adminId);
+        if (channelUpdate.status === 'fail') {
+            io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
+        } else {
+            let message = `thành viên ${msg.userId} đã được làm quản trị viên bởi ${msg.adminId}`;
+            io.emit(msg.channelId, JSON.stringify(message));
+        }
+    });
+
+    socket.on('upload file', async (msg) => {
+        msg = {
+            channelId: "",
+            file: "affs,",
+            userFrom: "afasf",
+        }
+        const channelUpdate = await chatService.uploadFile(msg.channelId, msg.file, msg.userFrom);
         if (channelUpdate.status === 'fail') {
             io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
         } else {

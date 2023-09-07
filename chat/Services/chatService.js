@@ -1,6 +1,6 @@
-const messageModel = require("./messageModel");
-const channelModel = require("./channelModel");
-const AppError = require("./appError");
+const messageModel = require("../Model/messageModel");
+const channelModel = require("../Model/channelModel");
+const AppError = require("../Utilities/appError");
 const mongoose = require('mongoose');
 
 module.exports = class chatService {
@@ -111,9 +111,8 @@ module.exports = class chatService {
         if(!channelUpdateName) {
             return AppError('không thể cập nhật tên cho group, vui lòng kiểm tra lại', 401);
         }
+
         return channelUpdateName;
-        for (let i = 0; i < ; i++) {
-            
-        }
+
     }
 }

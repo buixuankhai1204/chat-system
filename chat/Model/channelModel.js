@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const appError = require('appError');
+const appError = require('chat/Utilities/appError');
 
 const channelSchema = new mongoose.Schema({
 
