@@ -22,7 +22,6 @@ module.exports = class chatService {
             return next(new AppError('không tìm thấy channel', 401));
         }
 
-
         if(channel.isAdmin(adminId) === false) {
             return  new AppError('chưa có quyền quản trị viên, vui lòng kiểm tra lại', 401);
         }
@@ -114,5 +113,14 @@ module.exports = class chatService {
 
         return channelUpdateName;
 
+    }
+
+    static async saveFile(channelId, usserId, file) {
+        console.log(file);
+        name = `${channelId}-${userId}-${file.name}`;
+        writeFile(`/file/${name}.img`, file, (err) => {
+            if (err) throw err;
+            console.log('The file has been saved!');
+        });
     }
 }
