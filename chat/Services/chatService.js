@@ -1,6 +1,7 @@
 const messageModel = require("../Model/messageModel");
 const channelModel = require("../Model/channelModel");
 const AppError = require("../Utilities/appError");
+const messageCache = require("../Cache/messageCache");
 const mongoose = require('mongoose');
 
 module.exports = class chatService {
@@ -122,5 +123,14 @@ module.exports = class chatService {
             if (err) throw err;
             console.log('The file has been saved!');
         });
+    }
+
+    static async getlistChannelsByCache(userId) {
+        let listChannels = await messageCache.getlistChannelCache(userId);
+
+        if(listChannels == null) {
+            listChannels = await messageCache.warmUpListChannelById(userId);
+        }
+        return listChannels;
     }
 }

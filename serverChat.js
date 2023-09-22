@@ -90,6 +90,16 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('get or cache list channel', async (msg) => {
+        const channelUpdate = await chatService.getlistChannelsByCache(msg.userId);
+        if (channelUpdate.status === 'fail') {
+            io.emit(msg.adminId, channelUpdate.message); // This will emit the event to all connected sockets
+        } else {
+            let message = `thành viên ${msg.userId} đã được làm quản trị viên bởi ${msg.adminId}`;
+            io.emit(msg.channelId, JSON.stringify(message));
+        }
+    });
+
 });
 
 httpServer.listen(8080);
